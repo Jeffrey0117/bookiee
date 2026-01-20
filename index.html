@@ -505,6 +505,110 @@
       margin: var(--space-md) auto;
     }
 
+    /* === ARTICLE NAVIGATION === */
+    .article-nav {
+      max-width: var(--article-width);
+      margin: 0 auto;
+      padding: var(--space-lg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: var(--space-md);
+      background: var(--color-paper);
+      border-top: 1px solid var(--color-border);
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      padding: 0.75em 1.25em;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      background: var(--color-paper);
+      color: var(--color-ink);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover:not(.disabled) {
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+      color: white;
+    }
+
+    .nav-btn.disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .nav-counter {
+      font-size: 0.85rem;
+      color: var(--color-ink-muted);
+      font-weight: 500;
+    }
+
+    /* === NEXT ARTICLE PREVIEW === */
+    .next-article-preview {
+      max-width: var(--article-width);
+      margin: 0 auto;
+      padding: var(--space-xl) var(--space-lg);
+      background: var(--color-paper);
+    }
+
+    .next-preview-content {
+      padding: var(--space-lg);
+      background: linear-gradient(135deg, var(--color-accent-soft) 0%, var(--color-bg) 100%);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-align: center;
+    }
+
+    .next-preview-content:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px var(--color-shadow);
+    }
+
+    .next-label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--color-ink-muted);
+      margin-bottom: var(--space-xs);
+    }
+
+    .next-category {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      background: var(--color-paper);
+      padding: 0.3em 0.8em;
+      border-radius: 2px;
+      margin-bottom: var(--space-sm);
+    }
+
+    .next-preview-content h3 {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: var(--space-sm);
+    }
+
+    .next-hint {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--color-ink-muted);
+    }
+
     /* === FOOTER === */
     .magazine-footer {
       background: var(--color-ink);
@@ -634,6 +738,12 @@
       </div>
     </header>
     <article class="article-detail-body" id="article-detail-body"></article>
+
+    <!-- 文章導航 -->
+    <nav class="article-nav" id="article-nav"></nav>
+
+    <!-- 下一篇預覽 -->
+    <div class="next-article-preview" id="next-article-preview"></div>
   </div>
 
   <!-- FOOTER -->
@@ -794,9 +904,81 @@
 
     const Magazine = {
       currentIssueId: null,
+      currentArticleIndex: 0,
 
       init() {
         this.renderIssuesGrid();
+        this.setupKeyboardNav();
+        this.setupInfiniteScroll();
+      },
+
+      // 鍵盤導航
+      setupKeyboardNav() {
+        document.addEventListener('keydown', (e) => {
+          const articlePage = document.getElementById('page-article-detail');
+          if (!articlePage.classList.contains('active')) return;
+
+          switch(e.key) {
+            case 'ArrowLeft':
+              this.prevArticle();
+              break;
+            case 'ArrowRight':
+              this.nextArticle();
+              break;
+            case 'Escape':
+              this.showIssue(this.currentIssueId);
+              break;
+          }
+        });
+      },
+
+      // 無限流閱讀
+      setupInfiniteScroll() {
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(() => {
+            this.checkInfiniteScroll();
+            ticking = false;
+          });
+        });
+      },
+
+      checkInfiniteScroll() {
+        const articlePage = document.getElementById('page-article-detail');
+        if (!articlePage.classList.contains('active')) return;
+
+        const scrollY = window.scrollY;
+        const windowHeight = window.innerHeight;
+        const docHeight = document.documentElement.scrollHeight;
+
+        // 滾到底部 90% 時載入下一篇
+        if (scrollY + windowHeight > docHeight * 0.9) {
+          this.loadNextArticlePreview();
+        }
+      },
+
+      loadNextArticlePreview() {
+        const issue = MAGAZINE_DATA.issues.find(i => i.id === this.currentIssueId);
+        if (!issue) return;
+
+        const nextIndex = this.currentArticleIndex + 1;
+        if (nextIndex >= issue.articles.length) return;
+
+        const nextArticle = issue.articles[nextIndex];
+        const preview = document.getElementById('next-article-preview');
+        if (preview && !preview.dataset.loaded) {
+          preview.innerHTML = `
+            <div class="next-preview-content" onclick="Magazine.nextArticle()">
+              <span class="next-label">下一篇</span>
+              <span class="next-category">${nextArticle.category}</span>
+              <h3>${nextArticle.title}</h3>
+              <span class="next-hint">點擊或按 → 繼續閱讀</span>
+            </div>
+          `;
+          preview.dataset.loaded = 'true';
+        }
       },
 
       showPage(pageId) {
@@ -836,19 +1018,74 @@
 
       showArticle(issueId, articleId) {
         const issue = MAGAZINE_DATA.issues.find(i => i.id === issueId);
-        const article = issue?.articles.find(a => a.id === articleId);
+        const articleIndex = issue?.articles.findIndex(a => a.id === articleId);
+        const article = issue?.articles[articleIndex];
         if (!article) return;
+
+        this.currentIssueId = issueId;
+        this.currentArticleIndex = articleIndex;
 
         document.getElementById('article-back-link').onclick = () => this.showIssue(issueId);
         document.getElementById('article-detail-category').textContent = article.category;
         document.getElementById('article-detail-title').textContent = article.title;
-        document.getElementById('article-detail-excerpt').textContent = article.excerpt;
+        document.getElementById('article-detail-excerpt').textContent = article.excerpt || '';
         document.getElementById('article-detail-author').textContent = article.author;
         document.getElementById('article-detail-date').textContent = article.date;
         document.getElementById('article-detail-time').textContent = article.readTime;
         document.getElementById('article-detail-body').innerHTML = renderArticleContent(article.content);
 
+        // 更新導航
+        this.updateArticleNav(issue, articleIndex);
+
+        // 重置下一篇預覽
+        const preview = document.getElementById('next-article-preview');
+        if (preview) {
+          preview.innerHTML = '';
+          preview.dataset.loaded = '';
+        }
+
         this.showPage('page-article-detail');
+      },
+
+      updateArticleNav(issue, index) {
+        const total = issue.articles.length;
+        const navEl = document.getElementById('article-nav');
+        if (!navEl) return;
+
+        const hasPrev = index > 0;
+        const hasNext = index < total - 1;
+
+        navEl.innerHTML = `
+          <button class="nav-btn prev ${hasPrev ? '' : 'disabled'}" onclick="Magazine.prevArticle()" ${hasPrev ? '' : 'disabled'}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            上一篇
+          </button>
+          <span class="nav-counter">${index + 1} / ${total}</span>
+          <button class="nav-btn next ${hasNext ? '' : 'disabled'}" onclick="Magazine.nextArticle()" ${hasNext ? '' : 'disabled'}>
+            下一篇
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        `;
+      },
+
+      prevArticle() {
+        const issue = MAGAZINE_DATA.issues.find(i => i.id === this.currentIssueId);
+        if (!issue || this.currentArticleIndex <= 0) return;
+
+        const prevArticle = issue.articles[this.currentArticleIndex - 1];
+        this.showArticle(this.currentIssueId, prevArticle.id);
+      },
+
+      nextArticle() {
+        const issue = MAGAZINE_DATA.issues.find(i => i.id === this.currentIssueId);
+        if (!issue || this.currentArticleIndex >= issue.articles.length - 1) return;
+
+        const nextArticle = issue.articles[this.currentArticleIndex + 1];
+        this.showArticle(this.currentIssueId, nextArticle.id);
       },
 
       // ============================================

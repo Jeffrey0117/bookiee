@@ -121,21 +121,75 @@ async function crawlBookDetail(browser, url) {
     const pages = pageMatch ? parseInt(pageMatch[1]) : null;
 
     // 目錄/文章列表 - 從 .nav-contents .nav-point 抓取
-    const articles = [];
+    const tocArticles = [];
     const tocItems = document.querySelectorAll('.nav-contents .nav-point');
     tocItems.forEach((el, index) => {
       const text = el.textContent?.trim();
       if (text && text.length < 200) {
-        articles.push(text);
+        tocArticles.push(text);
       }
     });
 
     // 過濾掉固定的項目，保留文章標題
-    const filteredArticles = articles.filter(item => {
+    const filteredArticles = tocArticles.filter(item => {
       // 跳過：封面、目錄、雜誌名稱本身
       const skip = ['封面', '目錄'];
       return !skip.includes(item) && !item.includes('電腦家庭') && item.length > 2;
     });
+
+    // 詳細資訊區塊 - 從 .rm-story 或類似區塊抓取
+    let detailInfo = '';
+    const storyEl = document.querySelector('.rm-story');
+    if (storyEl) {
+      detailInfo = storyEl.innerText || '';
+    }
+
+    // 解析詳細資訊中的文章（【特別企劃】格式）
+    const detailArticles = [];
+    if (detailInfo) {
+      const lines = detailInfo.split('\n').map(l => l.trim()).filter(l => l);
+      let currentCategory = '';
+      let currentTitle = '';
+      let currentSubtitles = [];
+
+      for (const line of lines) {
+        // 分類標籤 【xxx】
+        if (line.match(/^【.+】$/)) {
+          // 儲存上一篇
+          if (currentTitle) {
+            detailArticles.push({
+              category: currentCategory,
+              title: currentTitle,
+              subtitles: currentSubtitles
+            });
+          }
+          currentCategory = line.replace(/[【】]/g, '');
+          currentTitle = '';
+          currentSubtitles = [];
+        }
+        // 副標題（以 | 開頭）
+        else if (line.startsWith('|') || line.startsWith('｜')) {
+          currentSubtitles.push(line.replace(/^[|｜]\s*/, ''));
+        }
+        // 主標題（第一行非 | 開頭的文字）
+        else if (currentCategory && !currentTitle) {
+          currentTitle = line;
+        }
+        // 副標題（後續的描述）
+        else if (currentTitle && line.length > 5 && line.length < 100) {
+          currentSubtitles.push(line);
+        }
+      }
+
+      // 儲存最後一篇
+      if (currentTitle) {
+        detailArticles.push({
+          category: currentCategory,
+          title: currentTitle,
+          subtitles: currentSubtitles
+        });
+      }
+    }
 
     return {
       title,
@@ -149,7 +203,9 @@ async function crawlBookDetail(browser, url) {
       isbn,
       language,
       pages,
-      articles: filteredArticles, // 文章標題列表
+      articles: filteredArticles, // 目錄文章標題列表
+      detailArticles, // 詳細資訊解析的文章（含分類、標題、副標題）
+      detailInfo, // 原始詳細資訊文字
       url: window.location.href
     };
   });

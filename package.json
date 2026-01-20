@@ -4,9 +4,13 @@
   "description": "Readmoo 雜誌爬蟲",
   "type": "module",
   "scripts": {
-    "crawl": "node crawler.js"
+    "crawl": "node crawler.js",
+    "generate": "node generate.js",
+    "dev": "node server.js"
   },
   "dependencies": {
+    "fastify": "^5.7.1",
+    "meei": "file:c:/dev/meei/nodejs",
     "puppeteer": "^23.0.0"
   }
 }
