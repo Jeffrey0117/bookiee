@@ -120,12 +120,21 @@ async function crawlBookDetail(browser, url) {
     const pageMatch = infoText.match(/(\d+)\s*頁/);
     const pages = pageMatch ? parseInt(pageMatch[1]) : null;
 
-    // 目錄 - 嘗試多種選擇器
-    const toc = [];
-    const tocItems = document.querySelectorAll('.toc-item, [class*="catalog"] li, [class*="chapter"]');
-    tocItems.forEach(el => {
+    // 目錄/文章列表 - 從 .nav-contents .nav-point 抓取
+    const articles = [];
+    const tocItems = document.querySelectorAll('.nav-contents .nav-point');
+    tocItems.forEach((el, index) => {
       const text = el.textContent?.trim();
-      if (text && text.length < 200) toc.push(text);
+      if (text && text.length < 200) {
+        articles.push(text);
+      }
+    });
+
+    // 過濾掉固定的項目，保留文章標題
+    const filteredArticles = articles.filter(item => {
+      // 跳過：封面、目錄、雜誌名稱本身
+      const skip = ['封面', '目錄'];
+      return !skip.includes(item) && !item.includes('電腦家庭') && item.length > 2;
     });
 
     return {
@@ -135,12 +144,12 @@ async function crawlBookDetail(browser, url) {
       publisher,
       price,
       originalPrice,
-      description: description.slice(0, 1000), // 限制長度
+      description: description.slice(0, 1000),
       publishDate,
       isbn,
       language,
       pages,
-      toc,
+      articles: filteredArticles, // 文章標題列表
       url: window.location.href
     };
   });
