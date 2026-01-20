@@ -6,7 +6,8 @@
   "scripts": {
     "crawl": "node crawler.js",
     "generate": "node generate.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "hn": "node hn-crawler.js"
   },
   "dependencies": {
     "fastify": "^5.7.1",
