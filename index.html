@@ -889,7 +889,10 @@
     function renderArticleContent(content) {
       return content.map(block => {
         switch (block.type) {
-          case 'paragraph': return `<p>${block.text}</p>`;
+          case 'paragraph':
+            // 把 \n\n 分成多個段落，單個 \n 變成 <br>
+            const paragraphs = block.text.split(/\n\n+/).filter(p => p.trim());
+            return paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
           case 'heading': return `<h2>${block.text}</h2>`;
           case 'blockquote': return `<blockquote>${block.text}</blockquote>`;
           case 'pullquote': return `<div class="pull-quote">${block.text}</div>`;
