@@ -440,16 +440,21 @@
     .article-detail-body {
       max-width: var(--article-width);
       margin: 0 auto;
-      padding: var(--space-xl) var(--space-lg);
+      padding: var(--space-2xl) var(--space-lg);
       background: var(--color-paper);
     }
 
     .article-detail-body p {
       font-family: var(--font-serif);
-      font-size: 1.15rem;
-      line-height: 2;
-      margin-bottom: var(--space-md);
+      font-size: 1.2rem;
+      line-height: 2.2;
+      margin-bottom: var(--space-lg);
       text-align: justify;
+      letter-spacing: 0.02em;
+    }
+
+    .article-detail-body p + p {
+      text-indent: 2em;
     }
 
     .article-detail-body p:first-of-type::first-letter {
