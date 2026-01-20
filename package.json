@@ -1,0 +1,12 @@
+{
+  "name": "bookiee",
+  "version": "1.0.0",
+  "description": "Readmoo 雜誌爬蟲",
+  "type": "module",
+  "scripts": {
+    "crawl": "node crawler.js"
+  },
+  "dependencies": {
+    "puppeteer": "^23.0.0"
+  }
+}
