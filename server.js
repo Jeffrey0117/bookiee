@@ -48,10 +48,13 @@ function transformData(rawData) {
 
         // 過濾掉沒有實質標題的項目（短標題且沒有冒號）
         const noContentTitles = [
-          '編者的話', '新聞快遞', '新產品情報', '熱門影劇',
-          '影音在線', '先睹為快', 'Dr. J', 'Dr.J'
+          '新產品情報', '熱門影劇', '影音在線', '先睹為快', 'Dr. J', 'Dr.J'
         ];
         if (noContentTitles.includes(title)) return false;
+
+        // 保留編者的話、新聞快遞（這些有內容可以生成）
+        const keepTitles = ['編者的話', '新聞快遞'];
+        if (keepTitles.includes(title)) return true;
 
         // 保留有冒號分隔的標題（有明確分類和標題）
         // 或標題夠長的（> 10 字）
