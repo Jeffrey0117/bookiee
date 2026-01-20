@@ -72,12 +72,59 @@
 
 ---
 
+## 優先發展方向：RSS 翻譯站
+
+### 方向 1：Hacker News 每日精選
+**來源**：https://news.ycombinator.com/
+**API**：https://github.com/HackerNews/API
+**內容**：
+- 每日 Top 10-20 熱門文章
+- 翻譯標題 + 摘要重點
+- 精選留言觀點翻譯
+- 加上編輯觀點
+
+**輸出格式**：
+- 網站每日更新
+- 電子報（每日/每週）
+- Telegram/Discord Bot
+
+---
+
+### 方向 2：Product Hunt 新產品推薦
+**來源**：https://www.producthunt.com/
+**API**：GraphQL API（需申請）
+**內容**：
+- 每日/每週精選新產品
+- 產品介紹翻譯
+- 使用場景說明
+- 類似產品比較
+- 適合誰用
+
+**輸出格式**：
+- 產品卡片式網站
+- IG/Twitter 圖文
+- YouTube Shorts 腳本
+
+---
+
+### 技術架構
+```
+[定時排程] → [爬取 RSS/API] → [AI 翻譯+加工] → [儲存 DB] → [網站展示]
+                                    ↓
+                              [推播通知]
+                              - 電子報
+                              - Telegram
+                              - RSS 輸出
+```
+
+---
+
 ## 下一步 TODO
 
-- [ ] 評估 Perplexity / Tavily API 成本
-- [ ] 測試爬取英文科技網站（RSS 優先）
-- [ ] 做一個「程式教學」類型的生成測試
-- [ ] 設計內容分類系統（新聞/教學/評測/翻譯）
+- [ ] 測試 Hacker News API 抓取
+- [ ] 測試 Product Hunt API 申請
+- [ ] 設計資料庫 schema
+- [ ] 做一個 MVP 原型
 
 ---
 
