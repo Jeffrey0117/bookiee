@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLUX — 數位生活誌</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-bg: #F5F5F3;
+      --color-paper: #FFFFFF;
+      --color-ink: #1A1A1A;
+      --color-ink-light: #4A4A4A;
+      --color-ink-muted: #8A8A8A;
+      --color-accent: #C41E3A;
+      --color-accent-soft: #F5E6E8;
+      --color-border: #E5E5E5;
+      --color-shadow: rgba(0,0,0,0.08);
+      
+      --font-serif: 'Noto Serif TC', serif;
+      --font-sans: 'Noto Sans TC', sans-serif;
+      
+      --space-xs: 0.5rem;
+      --space-sm: 1rem;
+      --space-md: 1.5rem;
+      --space-lg: 2.5rem;
+      --space-xl: 4rem;
+      --space-2xl: 6rem;
+      
+      --max-width: 1400px;
+      --article-width: 720px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-bg);
+      color: var(--color-ink);
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* === HEADER === */
+    .magazine-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--color-paper);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .header-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: var(--space-sm) var(--space-lg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-family: var(--font-serif);
+      font-size: 1.75rem;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      color: var(--color-ink);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .logo span { color: var(--color-accent); }
+
+    .nav-menu {
+      display: flex;
+      gap: var(--space-lg);
+      list-style: none;
+    }
+    .nav-menu a {
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--color-ink-light);
+      text-decoration: none;
+      transition: color 0.2s;
+      cursor: pointer;
+    }
+    .nav-menu a:hover { color: var(--color-accent); }
+
+    /* === PAGE VIEWS === */
+    .page-view { display: none; }
+    .page-view.active { display: block; }
+
+    /* =============================================
+       ISSUES GRID PAGE (期刊列表頁)
+       ============================================= */
+    .issues-hero {
+      background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
+      color: var(--color-paper);
+      padding: var(--space-2xl) var(--space-lg);
+      text-align: center;
+    }
+
+    .issues-hero h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--space-sm);
+    }
+
+    .issues-hero p {
+      font-size: 1.125rem;
+      opacity: 0.7;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .issues-grid-container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: var(--space-xl) var(--space-lg);
+    }
+
+    .issues-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--space-lg);
+    }
+
+    /* === ISSUE CARD === */
+    .issue-card {
+      background: var(--color-paper);
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px var(--color-shadow);
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .issue-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    }
+
+    .issue-cover {
+      position: relative;
+      aspect-ratio: 3/4;
+      overflow: hidden;
+    }
+
+    .issue-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .issue-card:hover .issue-cover img {
+      transform: scale(1.05);
+    }
+
+    .issue-cover-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: var(--space-md);
+      color: white;
+    }
+
+    .issue-number {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.8;
+      margin-bottom: var(--space-xs);
+    }
+
+    .issue-cover-title {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .issue-info {
+      padding: var(--space-md);
+    }
+
+    .issue-date {
+      font-size: 0.8rem;
+      color: var(--color-ink-muted);
+      margin-bottom: var(--space-xs);
+    }
+
+    .issue-article-count {
+      font-size: 0.85rem;
+      color: var(--color-ink-light);
+    }
+
+    .issue-article-count strong {
+      color: var(--color-accent);
+    }
+
+    /* =============================================
+       SINGLE ISSUE PAGE (單期內容頁)
+       ============================================= */
+    .issue-header {
+      position: relative;
+      min-height: 500px;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .issue-header-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .issue-header-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: brightness(0.3);
+    }
+
+    .issue-header-content {
+      position: relative;
+      z-index: 1;
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: var(--space-2xl) var(--space-lg);
+      color: white;
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: var(--space-xl);
+      align-items: center;
+    }
+
+    .issue-header-cover {
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .issue-header-cover img {
+      width: 100%;
+      display: block;
+    }
+
+    .issue-header-info .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      margin-bottom: var(--space-md);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .issue-header-info .back-link:hover {
+      color: white;
+    }
+
+    .issue-header-info .issue-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.7;
+      margin-bottom: var(--space-sm);
+    }
+
+    .issue-header-info h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: var(--space-md);
+    }
+
+    .issue-header-info .issue-desc {
+      font-size: 1.125rem;
+      opacity: 0.8;
+      line-height: 1.7;
+      margin-bottom: var(--space-md);
+    }
+
+    .issue-header-info .issue-meta {
+      display: flex;
+      gap: var(--space-md);
+      font-size: 0.9rem;
+      opacity: 0.6;
+    }
+
+    /* === ARTICLES LIST === */
+    .articles-section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: var(--space-xl) var(--space-lg);
+    }
+
+    .articles-section-title {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-sm);
+      border-bottom: 2px solid var(--color-ink);
+    }
+
+    .article-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--space-md);
+      padding: var(--space-lg) 0;
+      border-bottom: 1px solid var(--color-border);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .article-item:hover {
+      background: linear-gradient(90deg, var(--color-accent-soft) 0%, transparent 100%);
+      margin: 0 calc(-1 * var(--space-md));
+      padding-left: var(--space-md);
+      padding-right: var(--space-md);
+    }
+
+    .article-item-content {
+      min-width: 0;
+    }
+
+    .article-item-category {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: var(--space-xs);
+    }
+
+    .article-item-title {
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: var(--space-xs);
+    }
+
+    .article-item-excerpt {
+      font-size: 0.95rem;
+      color: var(--color-ink-light);
+      line-height: 1.6;
+    }
+
+    .article-item-meta {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      gap: var(--space-xs);
+      font-size: 0.8rem;
+      color: var(--color-ink-muted);
+      white-space: nowrap;
+    }
+
+    /* =============================================
+       ARTICLE DETAIL PAGE (文章內容頁)
+       ============================================= */
+    .article-detail-header {
+      background: var(--color-paper);
+      padding: var(--space-xl) var(--space-lg);
+      text-align: center;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .article-detail-header .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5em;
+      font-size: 0.85rem;
+      color: var(--color-ink-muted);
+      text-decoration: none;
+      margin-bottom: var(--space-lg);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .article-detail-header .back-link:hover {
+      color: var(--color-accent);
+    }
+
+    .article-detail-header .article-category {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      background: var(--color-accent-soft);
+      padding: 0.4em 1em;
+      margin-bottom: var(--space-md);
+    }
+
+    .article-detail-header h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 900;
+      line-height: 1.2;
+      max-width: 800px;
+      margin: 0 auto var(--space-md);
+    }
+
+    .article-detail-header .excerpt {
+      font-size: 1.25rem;
+      color: var(--color-ink-light);
+      max-width: 600px;
+      margin: 0 auto var(--space-lg);
+    }
+
+    .article-detail-header .meta {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-lg);
+      font-size: 0.85rem;
+      color: var(--color-ink-muted);
+    }
+
+    .article-detail-body {
+      max-width: var(--article-width);
+      margin: 0 auto;
+      padding: var(--space-xl) var(--space-lg);
+      background: var(--color-paper);
+    }
+
+    .article-detail-body p {
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      line-height: 2;
+      margin-bottom: var(--space-md);
+      text-align: justify;
+    }
+
+    .article-detail-body p:first-of-type::first-letter {
+      font-family: var(--font-serif);
+      font-size: 4.5rem;
+      font-weight: 900;
+      float: left;
+      line-height: 1;
+      margin-right: 0.5rem;
+      margin-top: 0.1rem;
+      color: var(--color-accent);
+    }
+
+    .article-detail-body h2 {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin: var(--space-xl) 0 var(--space-md);
+      padding-left: var(--space-md);
+      border-left: 3px solid var(--color-accent);
+    }
+
+    .article-detail-body blockquote {
+      font-family: var(--font-serif);
+      font-size: 1.25rem;
+      font-style: italic;
+      line-height: 1.7;
+      color: var(--color-ink-light);
+      margin: var(--space-lg) 0;
+      padding: var(--space-md) var(--space-lg);
+      border-left: 3px solid var(--color-accent);
+      background: linear-gradient(90deg, var(--color-accent-soft) 0%, transparent 100%);
+    }
+
+    .article-detail-body .pull-quote {
+      font-family: var(--font-serif);
+      font-size: 1.75rem;
+      font-weight: 600;
+      line-height: 1.4;
+      text-align: center;
+      color: var(--color-ink);
+      margin: var(--space-xl) 0;
+      padding: var(--space-lg);
+    }
+
+    .article-detail-body .pull-quote::before,
+    .article-detail-body .pull-quote::after {
+      content: '';
+      display: block;
+      width: 60px;
+      height: 2px;
+      background: var(--color-accent);
+      margin: var(--space-md) auto;
+    }
+
+    /* === FOOTER === */
+    .magazine-footer {
+      background: var(--color-ink);
+      color: var(--color-paper);
+      padding: var(--space-xl) var(--space-lg);
+      text-align: center;
+    }
+
+    .footer-logo {
+      font-family: var(--font-serif);
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      margin-bottom: var(--space-md);
+    }
+    .footer-logo span { color: var(--color-accent); }
+
+    .footer-text {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* === RESPONSIVE === */
+    @media (max-width: 768px) {
+      .header-inner { flex-direction: column; gap: var(--space-sm); }
+      .nav-menu { gap: var(--space-md); }
+      
+      .issue-header-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      
+      .issue-header-cover {
+        max-width: 200px;
+        margin: 0 auto;
+      }
+      
+      .article-item {
+        grid-template-columns: 1fr;
+      }
+      
+      .article-item-meta {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="magazine-header">
+    <div class="header-inner">
+      <a class="logo" onclick="Magazine.showIssuesList()">FLUX<span>.</span></a>
+      <nav>
+        <ul class="nav-menu">
+          <li><a onclick="Magazine.showIssuesList()">所有期刊</a></li>
+          <li><a>科技</a></li>
+          <li><a>生活</a></li>
+          <li><a>訂閱</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- PAGE: 期刊列表 -->
+  <div id="page-issues-list" class="page-view active">
+    <section class="issues-hero">
+      <h1>FLUX<span style="color:var(--color-accent)">.</span> 數位生活誌</h1>
+      <p>探索科技與生活的交匯點，每一期都是新的靈感旅程</p>
+    </section>
+    <div class="issues-grid-container">
+      <div class="issues-grid" id="issues-grid"></div>
+    </div>
+  </div>
+
+  <!-- PAGE: 單期內容 -->
+  <div id="page-issue-detail" class="page-view">
+    <header class="issue-header">
+      <div class="issue-header-bg">
+        <img id="issue-detail-bg" src="" alt="">
+      </div>
+      <div class="issue-header-content">
+        <div class="issue-header-cover">
+          <img id="issue-detail-cover" src="" alt="">
+        </div>
+        <div class="issue-header-info">
+          <a class="back-link" onclick="Magazine.showIssuesList()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            返回所有期刊
+          </a>
+          <p class="issue-label" id="issue-detail-label"></p>
+          <h1 id="issue-detail-title"></h1>
+          <p class="issue-desc" id="issue-detail-desc"></p>
+          <div class="issue-meta">
+            <span id="issue-detail-date"></span>
+            <span>·</span>
+            <span id="issue-detail-count"></span>
+          </div>
+        </div>
+      </div>
+    </header>
+    <section class="articles-section">
+      <h2 class="articles-section-title">本期內容</h2>
+      <div id="issue-articles-list"></div>
+    </section>
+  </div>
+
+  <!-- PAGE: 文章內容 -->
+  <div id="page-article-detail" class="page-view">
+    <header class="article-detail-header">
+      <a class="back-link" id="article-back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        返回本期目錄
+      </a>
+      <span class="article-category" id="article-detail-category"></span>
+      <h1 id="article-detail-title"></h1>
+      <p class="excerpt" id="article-detail-excerpt"></p>
+      <div class="meta">
+        <span id="article-detail-author"></span>
+        <span id="article-detail-date"></span>
+        <span id="article-detail-time"></span>
+      </div>
+    </header>
+    <article class="article-detail-body" id="article-detail-body"></article>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="magazine-footer">
+    <div class="footer-logo">FLUX<span>.</span></div>
+    <p class="footer-text">© 2025 FLUX 數位生活誌 — 探索科技與生活的交匯點</p>
+  </footer>
+
+  <script>
+    // ============================================
+    // 資料結構
+    // ============================================
+
+    const MAGAZINE_DATA = {
+      issues: [
+        {
+          id: 'issue-2025-01',
+          number: 12,
+          year: 2025,
+          month: 1,
+          title: 'AI 時代的效率革命',
+          description: '探索人工智慧如何重新定義我們的工作流程、創意思維，以及與數位世界的互動方式',
+          cover: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=800&fit=crop',
+          date: '2025年1月號',
+          articles: [
+            {
+              id: 'ai-browser-perplexity',
+              category: '效率工具',
+              title: '升級 AI 瀏覽器！用 Perplexity Comet 打造超效率上網體驗',
+              excerpt: '當搜尋引擎遇上大型語言模型，瀏覽器不再只是開網頁的工具，而是你的智慧助理。',
+              author: '林科技',
+              date: '2025.01.15',
+              readTime: '8 分鐘',
+              content: [
+                { type: 'paragraph', text: '傳統的網頁瀏覽方式正在經歷前所未有的變革。過去，我們習慣打開瀏覽器、輸入關鍵字、點擊連結、閱讀內容，然後重複這個過程直到找到答案。然而，Perplexity Comet 的出現徹底改變了這個既定模式——它將 AI 對話能力直接植入瀏覽器核心，讓「搜尋」這件事變成一場智慧對話。' },
+                { type: 'heading', text: '從搜尋到對話的典範轉移' },
+                { type: 'paragraph', text: '想像一下，當你瀏覽一篇英文技術文件時，不需要複製貼上到翻譯軟體，只要選取文字，AI 助理就能即時為你解釋專有名詞、總結段落重點，甚至延伸提供相關背景知識。這不是未來，而是現在。Comet 內建的側邊欄讓這一切變得如呼吸般自然。' },
+                { type: 'pullquote', text: '真正的效率，不是做更多事，而是讓工具替你思考。' },
+                { type: 'paragraph', text: '更令人驚艷的是它的上下文理解能力。當你在研究某個主題時，Comet 會記住你這次瀏覽的脈絡，後續的問答都能基於這個基礎進行。這意味著你不需要每次都從頭解釋你在做什麼——它已經知道了。這種「有記憶」的瀏覽體驗，讓深度研究變得前所未有地流暢。' },
+                { type: 'blockquote', text: '「我們的目標不是取代使用者的思考，而是放大他們的認知能力。」— Perplexity 產品負責人' },
+                { type: 'paragraph', text: '對於需要大量閱讀和研究的知識工作者來說，這種工具的價值是難以估量的。過去需要開十個分頁、記錄無數筆記才能完成的調研工作，現在可能只需要一個視窗、幾輪對話就能得到高品質的結論。這不僅是效率的提升，更是工作方式的根本改變。' }
+              ]
+            },
+            {
+              id: 'automation-ai-search',
+              category: '自動化',
+              title: '機器人不同思維，學用自動化 AI 搜尋體驗',
+              excerpt: '當我們談論自動化，不只是省時省力，而是用機器的邏輯重新理解問題本身。',
+              author: '張自動',
+              date: '2025.01.12',
+              readTime: '6 分鐘',
+              content: [
+                { type: 'paragraph', text: '自動化不是一個新概念，但 AI 的加入讓它煥發出全新的生命力。過去的自動化是「如果這樣，就那樣」的簡單條件判斷；現在的 AI 自動化則是「理解這個情境，做出最適合的反應」。這種從規則驅動到理解驅動的轉變，正在重新定義什麼是真正的智慧工作流程。' },
+                { type: 'heading', text: '用機器的眼睛看世界' },
+                { type: 'paragraph', text: '要真正駕馭 AI 搜尋自動化，首先要學會用機器的方式思考。人類習慣模糊的語言和隱含的假設，但機器需要明確的指令和清晰的目標。這不是缺點，而是一種不同的優勢——當你學會把問題拆解成機器能理解的結構時，你會發現自己對問題本身的理解也變得更加深刻。' },
+                { type: 'pullquote', text: '自動化最大的價值，是讓你有時間做只有人類能做的事。' },
+                { type: 'paragraph', text: '舉例來說，當你設定一個「每天早上自動搜集產業新聞並生成摘要」的自動化流程時，你必須思考：什麼是「產業新聞」的定義？哪些來源是可信的？摘要應該包含哪些要素？這些問題迫使你釐清自己真正的需求，而這種釐清本身就是極具價值的思考過程。' },
+                { type: 'blockquote', text: '「最好的自動化不是替代人類，而是讓人類專注於最有價值的決策。」— 自動化專家 David Liu' },
+                { type: 'paragraph', text: 'AI 搜尋自動化的另一個重要面向是持續學習和優化。與靜態的腳本不同，現代 AI 系統能夠從每次執行中學習，逐漸調整自己的行為以更好地符合你的需求。這意味著你的自動化流程會隨著時間變得越來越聰明，而你需要做的只是偶爾給它一些回饋。' }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'issue-2024-12',
+          number: 11,
+          year: 2024,
+          month: 12,
+          title: '年度回顧：改變遊戲規則的科技',
+          description: '盤點 2024 年最具影響力的科技突破，從生成式 AI 到量子運算的里程碑',
+          cover: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&h=800&fit=crop',
+          date: '2024年12月號',
+          articles: [
+            {
+              id: 'year-review-ai',
+              category: '年度回顧',
+              title: '2024 AI 大事記：從 GPT-5 到多模態革命',
+              excerpt: '回顧這一年人工智慧領域的重大突破與產業變革。',
+              author: '王科技',
+              date: '2024.12.20',
+              readTime: '10 分鐘',
+              content: [
+                { type: 'paragraph', text: '2024 年無疑是人工智慧發展史上最為關鍵的一年。從年初 GPT-5 的震撼發布，到年末多模態 AI 的全面普及，這一年的變化之快、影響之深，超乎所有人的預期。讓我們一起回顧這些改變世界的時刻。' },
+                { type: 'heading', text: '多模態 AI 的崛起' },
+                { type: 'paragraph', text: 'AI 不再只是處理文字的工具。2024 年，我們見證了真正能「看」、能「聽」、能「理解」的智慧系統。這種跨越感官界限的能力，為創意工作者、研究人員和一般用戶都帶來了前所未有的可能性。' },
+                { type: 'pullquote', text: '2024 年，AI 學會了用人類的方式感知世界。' }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'issue-2024-11',
+          number: 10,
+          year: 2024,
+          month: 11,
+          title: '遠端工作的下一章',
+          description: '疫情後的工作型態演變，以及科技如何重塑我們的職場生活',
+          cover: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=800&fit=crop',
+          date: '2024年11月號',
+          articles: []
+        }
+      ]
+    };
+
+    // ============================================
+    // 渲染函數
+    // ============================================
+
+    function renderIssueCard(issue) {
+      return `
+        <div class="issue-card" onclick="Magazine.showIssue('${issue.id}')">
+          <div class="issue-cover">
+            <img src="${issue.cover}" alt="${issue.title}" loading="lazy">
+            <div class="issue-cover-overlay">
+              <span class="issue-number">第 ${issue.number} 期</span>
+              <h3 class="issue-cover-title">${issue.title}</h3>
+            </div>
+          </div>
+          <div class="issue-info">
+            <p class="issue-date">${issue.date}</p>
+            <p class="issue-article-count">收錄 <strong>${issue.articles.length}</strong> 篇文章</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderArticleItem(article, issueId) {
+      return `
+        <div class="article-item" onclick="Magazine.showArticle('${issueId}', '${article.id}')">
+          <div class="article-item-content">
+            <span class="article-item-category">${article.category}</span>
+            <h3 class="article-item-title">${article.title}</h3>
+            <p class="article-item-excerpt">${article.excerpt}</p>
+          </div>
+          <div class="article-item-meta">
+            <span>${article.author}</span>
+            <span>${article.readTime}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderArticleContent(content) {
+      return content.map(block => {
+        switch (block.type) {
+          case 'paragraph': return `<p>${block.text}</p>`;
+          case 'heading': return `<h2>${block.text}</h2>`;
+          case 'blockquote': return `<blockquote>${block.text}</blockquote>`;
+          case 'pullquote': return `<div class="pull-quote">${block.text}</div>`;
+          default: return '';
+        }
+      }).join('');
+    }
+
+    // ============================================
+    // 頁面控制
+    // ============================================
+
+    const Magazine = {
+      currentIssueId: null,
+
+      init() {
+        this.renderIssuesGrid();
+      },
+
+      showPage(pageId) {
+        document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        window.scrollTo(0, 0);
+      },
+
+      showIssuesList() {
+        this.showPage('page-issues-list');
+      },
+
+      renderIssuesGrid() {
+        const grid = document.getElementById('issues-grid');
+        grid.innerHTML = MAGAZINE_DATA.issues.map(renderIssueCard).join('');
+      },
+
+      showIssue(issueId) {
+        const issue = MAGAZINE_DATA.issues.find(i => i.id === issueId);
+        if (!issue) return;
+
+        this.currentIssueId = issueId;
+
+        document.getElementById('issue-detail-bg').src = issue.cover;
+        document.getElementById('issue-detail-cover').src = issue.cover;
+        document.getElementById('issue-detail-label').textContent = `第 ${issue.number} 期`;
+        document.getElementById('issue-detail-title').textContent = issue.title;
+        document.getElementById('issue-detail-desc').textContent = issue.description;
+        document.getElementById('issue-detail-date').textContent = issue.date;
+        document.getElementById('issue-detail-count').textContent = `${issue.articles.length} 篇文章`;
+
+        const articlesList = document.getElementById('issue-articles-list');
+        articlesList.innerHTML = issue.articles.map(a => renderArticleItem(a, issueId)).join('');
+
+        this.showPage('page-issue-detail');
+      },
+
+      showArticle(issueId, articleId) {
+        const issue = MAGAZINE_DATA.issues.find(i => i.id === issueId);
+        const article = issue?.articles.find(a => a.id === articleId);
+        if (!article) return;
+
+        document.getElementById('article-back-link').onclick = () => this.showIssue(issueId);
+        document.getElementById('article-detail-category').textContent = article.category;
+        document.getElementById('article-detail-title').textContent = article.title;
+        document.getElementById('article-detail-excerpt').textContent = article.excerpt;
+        document.getElementById('article-detail-author').textContent = article.author;
+        document.getElementById('article-detail-date').textContent = article.date;
+        document.getElementById('article-detail-time').textContent = article.readTime;
+        document.getElementById('article-detail-body').innerHTML = renderArticleContent(article.content);
+
+        this.showPage('page-article-detail');
+      },
+
+      // ============================================
+      // API 接口（方便動態管理）
+      // ============================================
+
+      // 取得所有期刊
+      getIssues: () => MAGAZINE_DATA.issues,
+
+      // 取得單期
+      getIssue: (id) => MAGAZINE_DATA.issues.find(i => i.id === id),
+
+      // 新增期刊
+      addIssue(issue) {
+        MAGAZINE_DATA.issues.unshift(issue);
+        this.renderIssuesGrid();
+      },
+
+      // 新增文章到某期
+      addArticle(issueId, article) {
+        const issue = MAGAZINE_DATA.issues.find(i => i.id === issueId);
+        if (issue) {
+          issue.articles.push(article);
+        }
+      },
+
+      // 從 JSON 載入
+      async loadFromJSON(url) {
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          MAGAZINE_DATA.issues = data.issues;
+          this.renderIssuesGrid();
+        } catch (e) {
+          console.error('載入失敗:', e);
+        }
+      }
+    };
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => Magazine.init());
+  </script>
+
+</body>
+</html>
