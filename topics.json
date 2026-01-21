@@ -1,0 +1,31 @@
+{
+  "topics": [
+    {
+      "id": "hn",
+      "name": "HN Daily",
+      "icon": "🔥",
+      "description": "Hacker News 每日精選，熱門科技文章翻譯",
+      "path": "/hn",
+      "source": {
+        "type": "hn",
+        "url": "https://news.ycombinator.com",
+        "limit": 10
+      },
+      "enabled": true,
+      "lastCrawl": null
+    },
+    {
+      "id": "pchome",
+      "name": "PC home 數位生活",
+      "icon": "📱",
+      "description": "台灣科技雜誌，AI 生成文章內容",
+      "path": "/pchome",
+      "source": {
+        "type": "magazine",
+        "url": "https://readmoo.com"
+      },
+      "enabled": true,
+      "lastCrawl": null
+    }
+  ]
+}

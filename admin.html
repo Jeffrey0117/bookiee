@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookie Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --border: #e5e7eb;
+      --text: #1f2937;
+      --text-muted: #6b7280;
+      --accent: #3b82f6;
+      --accent-soft: rgba(59, 130, 246, 0.1);
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--card-bg);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      position: fixed;
+      height: 100vh;
+    }
+
+    .sidebar-logo {
+      padding: 0 24px 24px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-logo a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .sidebar-nav {
+      padding: 16px 0;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 24px;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      margin-left: 240px;
+      padding: 32px;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+
+    /* Cards */
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .topic-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .topic-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .topic-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .topic-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .topic-path {
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-family: monospace;
+    }
+
+    .topic-desc {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+
+    .topic-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .topic-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .status-enabled {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+
+    .status-disabled {
+      background: rgba(107, 114, 128, 0.1);
+      color: var(--text-muted);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--card-bg);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 20px;
+      background: var(--text);
+      color: white;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s;
+      z-index: 200;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <a href="/">Bookie</a> Admin
+      </div>
+      <nav class="sidebar-nav">
+        <a class="nav-item active" data-page="topics">
+          📚 主題管理
+        </a>
+        <a class="nav-item" data-page="crawler">
+          🔄 爬蟲執行
+        </a>
+        <a class="nav-item" data-page="settings">
+          ⚙️ 系統設定
+        </a>
+        <a class="nav-item" href="/" style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 24px;">
+          ← 返回首頁
+        </a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <!-- Topics Page -->
+      <div id="page-topics">
+        <div class="page-header">
+          <h1 class="page-title">主題管理</h1>
+          <button class="btn btn-primary" onclick="openModal()">
+            + 新增主題
+          </button>
+        </div>
+
+        <div class="topic-grid" id="topic-list">
+          <!-- Dynamic content -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title">新增主題</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="topic-form">
+          <input type="hidden" id="topic-id">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Icon</label>
+              <input type="text" class="form-input" id="topic-icon" placeholder="🔥" maxlength="2">
+            </div>
+            <div class="form-group">
+              <label class="form-label">路徑</label>
+              <input type="text" class="form-input" id="topic-path" placeholder="/tech">
+              <div class="form-hint">URL 路徑，例如 /tech</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">名稱</label>
+            <input type="text" class="form-input" id="topic-name" placeholder="科技趨勢" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">描述</label>
+            <textarea class="form-textarea" id="topic-desc" placeholder="這個主題的簡短描述..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">來源類型</label>
+            <select class="form-select" id="source-type">
+              <option value="rss">RSS Feed</option>
+              <option value="hn">Hacker News API</option>
+              <option value="web">網頁爬蟲</option>
+              <option value="api">自訂 API</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">來源 URL</label>
+            <input type="url" class="form-input" id="source-url" placeholder="https://...">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">抓取數量</label>
+            <input type="number" class="form-input" id="source-limit" value="10" min="1" max="50">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveTopic()">儲存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let topics = [];
+
+    // Load topics
+    async function loadTopics() {
+      try {
+        const res = await fetch('/api/admin/topics');
+        const data = await res.json();
+        topics = data.topics || [];
+        renderTopics();
+      } catch (e) {
+        showToast('載入失敗: ' + e.message);
+      }
+    }
+
+    // Render topics
+    function renderTopics() {
+      const list = document.getElementById('topic-list');
+      list.innerHTML = topics.map(t => `
+        <div class="topic-card">
+          <div class="topic-card-header">
+            <div>
+              <div class="topic-icon">${t.icon || '📄'}</div>
+              <div class="topic-name">${t.name}</div>
+              <div class="topic-path">${t.path}</div>
+            </div>
+            <span class="status-badge ${t.enabled ? 'status-enabled' : 'status-disabled'}">
+              ${t.enabled ? '啟用中' : '已停用'}
+            </span>
+          </div>
+          <div class="topic-desc">${t.description || '無描述'}</div>
+          <div class="topic-meta">
+            <span>來源: ${t.source?.type || 'N/A'}</span>
+            <span>上次更新: ${t.lastCrawl ? new Date(t.lastCrawl).toLocaleString() : '從未'}</span>
+          </div>
+          <div class="topic-actions" style="margin-top: 16px;">
+            <button class="btn btn-sm btn-secondary" onclick="editTopic('${t.id}')">編輯</button>
+            <button class="btn btn-sm btn-primary" onclick="runCrawler('${t.id}')">執行爬蟲</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteTopic('${t.id}')">刪除</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Modal
+    function openModal(topic = null) {
+      document.getElementById('modal').classList.add('active');
+      document.getElementById('modal-title').textContent = topic ? '編輯主題' : '新增主題';
+
+      if (topic) {
+        document.getElementById('topic-id').value = topic.id;
+        document.getElementById('topic-icon').value = topic.icon || '';
+        document.getElementById('topic-path').value = topic.path || '';
+        document.getElementById('topic-name').value = topic.name || '';
+        document.getElementById('topic-desc').value = topic.description || '';
+        document.getElementById('source-type').value = topic.source?.type || 'rss';
+        document.getElementById('source-url').value = topic.source?.url || '';
+        document.getElementById('source-limit').value = topic.source?.limit || 10;
+      } else {
+        document.getElementById('topic-form').reset();
+        document.getElementById('topic-id').value = '';
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.remove('active');
+    }
+
+    function editTopic(id) {
+      const topic = topics.find(t => t.id === id);
+      if (topic) openModal(topic);
+    }
+
+    // Save topic
+    async function saveTopic() {
+      const id = document.getElementById('topic-id').value;
+      const topic = {
+        id: id || document.getElementById('topic-path').value.replace(/^\//, '').replace(/\//g, '-') || Date.now().toString(),
+        icon: document.getElementById('topic-icon').value,
+        path: document.getElementById('topic-path').value,
+        name: document.getElementById('topic-name').value,
+        description: document.getElementById('topic-desc').value,
+        source: {
+          type: document.getElementById('source-type').value,
+          url: document.getElementById('source-url').value,
+          limit: parseInt(document.getElementById('source-limit').value) || 10
+        },
+        enabled: true
+      };
+
+      try {
+        const res = await fetch('/api/admin/topics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(topic)
+        });
+
+        if (res.ok) {
+          showToast('儲存成功！');
+          closeModal();
+          loadTopics();
+        } else {
+          throw new Error('儲存失敗');
+        }
+      } catch (e) {
+        showToast('錯誤: ' + e.message);
+      }
+    }
+
+    // Delete topic
+    async function deleteTopic(id) {
+      if (!confirm('確定要刪除這個主題？')) return;
+
+      try {
+        const res = await fetch(`/api/admin/topics/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          showToast('已刪除');
+          loadTopics();
+        }
+      } catch (e) {
+        showToast('刪除失敗');
+      }
+    }
+
+    // Run crawler
+    async function runCrawler(id) {
+      showToast('爬蟲執行中...');
+      try {
+        const res = await fetch(`/api/admin/crawl/${id}`, { method: 'POST' });
+        const data = await res.json();
+        showToast(data.message || '執行完成！');
+        loadTopics();
+      } catch (e) {
+        showToast('執行失敗: ' + e.message);
+      }
+    }
+
+    // Toast
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Init
+    loadTopics();
+  </script>
+
+</body>
+</html>

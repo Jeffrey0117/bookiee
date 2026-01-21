@@ -245,6 +245,87 @@ fastify.get('/hn', async (request, reply) => {
   }
 });
 
+// =============================================
+// Admin API
+// =============================================
+
+// 讀取 topics 設定
+async function loadTopics() {
+  try {
+    const data = await fs.readFile(path.join(__dirname, 'topics.json'), 'utf-8');
+    return JSON.parse(data);
+  } catch {
+    return { topics: [] };
+  }
+}
+
+// 儲存 topics 設定
+async function saveTopics(data) {
+  await fs.writeFile(path.join(__dirname, 'topics.json'), JSON.stringify(data, null, 2), 'utf-8');
+}
+
+// GET /api/admin/topics - 列出所有主題
+fastify.get('/api/admin/topics', async (request, reply) => {
+  return await loadTopics();
+});
+
+// POST /api/admin/topics - 新增/更新主題
+fastify.post('/api/admin/topics', async (request, reply) => {
+  const topic = request.body;
+  const data = await loadTopics();
+
+  const index = data.topics.findIndex(t => t.id === topic.id);
+  if (index >= 0) {
+    data.topics[index] = { ...data.topics[index], ...topic };
+  } else {
+    data.topics.push(topic);
+  }
+
+  await saveTopics(data);
+  return { success: true };
+});
+
+// DELETE /api/admin/topics/:id - 刪除主題
+fastify.delete('/api/admin/topics/:id', async (request, reply) => {
+  const { id } = request.params;
+  const data = await loadTopics();
+  data.topics = data.topics.filter(t => t.id !== id);
+  await saveTopics(data);
+  return { success: true };
+});
+
+// POST /api/admin/crawl/:id - 執行爬蟲
+fastify.post('/api/admin/crawl/:id', async (request, reply) => {
+  const { id } = request.params;
+  const data = await loadTopics();
+  const topic = data.topics.find(t => t.id === id);
+
+  if (!topic) {
+    return reply.code(404).send({ error: '主題不存在' });
+  }
+
+  // 更新最後爬取時間
+  topic.lastCrawl = new Date().toISOString();
+  await saveTopics(data);
+
+  // TODO: 根據 topic.source.type 執行對應的爬蟲
+  // 目前先回傳成功訊息
+  return {
+    success: true,
+    message: `已排程執行 ${topic.name} 爬蟲（${topic.source?.type || 'unknown'}）`
+  };
+});
+
+// Admin 頁面
+fastify.get('/admin', async (request, reply) => {
+  const html = await fs.readFile(path.join(__dirname, 'admin.html'), 'utf-8');
+  reply.type('text/html').send(html);
+});
+
+// =============================================
+// Public Pages
+// =============================================
+
 // 首頁 - 專案介紹
 fastify.get('/', async (request, reply) => {
   const html = await fs.readFile(path.join(__dirname, 'home.html'), 'utf-8');
