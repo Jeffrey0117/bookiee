@@ -366,6 +366,16 @@
         <div class="topic-grid" id="topic-list">
           <!-- Dynamic content -->
         </div>
+
+        <!-- 來源庫 -->
+        <div style="margin-top: 48px;">
+          <div class="page-header">
+            <h2 class="page-title">📦 來源庫（一鍵加入）</h2>
+          </div>
+          <div class="topic-grid" id="source-library">
+            <!-- Dynamic content -->
+          </div>
+        </div>
       </div>
     </main>
   </div>
@@ -436,6 +446,69 @@
   <script>
     let topics = [];
 
+    // 預設來源庫
+    const sourceLibrary = [
+      // 科技新聞
+      { id: 'hn', name: 'Hacker News', icon: '🔥', description: '科技圈最熱門的話題討論', category: '科技新聞',
+        source: { type: 'hn', url: 'https://news.ycombinator.com', limit: 10 }},
+      { id: 'verge', name: 'The Verge', icon: '⚡', description: '科技、文化與未來生活', category: '科技新聞',
+        source: { type: 'rss', url: 'https://www.theverge.com/rss/index.xml', limit: 10 }},
+      { id: 'techcrunch', name: 'TechCrunch', icon: '💚', description: '新創與科技產業新聞', category: '科技新聞',
+        source: { type: 'rss', url: 'https://techcrunch.com/feed/', limit: 10 }},
+      { id: 'arstechnica', name: 'Ars Technica', icon: '🔬', description: '深度科技分析報導', category: '科技新聞',
+        source: { type: 'rss', url: 'https://feeds.arstechnica.com/arstechnica/features', limit: 10 }},
+
+      // 開發者
+      { id: 'devto', name: 'DEV.to', icon: '👩‍💻', description: '開發者社群文章', category: '開發者',
+        source: { type: 'rss', url: 'https://dev.to/feed', limit: 10 }},
+      { id: 'jsweekly', name: 'JavaScript Weekly', icon: '💛', description: 'JS 生態系週報', category: '開發者',
+        source: { type: 'rss', url: 'https://javascriptweekly.com/rss', limit: 10 }},
+      { id: 'nodeweekly', name: 'Node Weekly', icon: '💚', description: 'Node.js 生態週報', category: '開發者',
+        source: { type: 'rss', url: 'https://nodeweekly.com/rss', limit: 10 }},
+      { id: 'reactstatus', name: 'React Status', icon: '⚛️', description: 'React 生態週報', category: '開發者',
+        source: { type: 'rss', url: 'https://react.statuscode.com/rss', limit: 10 }},
+      { id: 'github-trending', name: 'GitHub Trending', icon: '🐙', description: '熱門開源專案', category: '開發者',
+        source: { type: 'web', url: 'https://github.com/trending', limit: 10 }},
+
+      // AI/ML
+      { id: 'arxiv-ai', name: 'arXiv AI', icon: '🤖', description: 'AI/ML 最新論文', category: 'AI/ML',
+        source: { type: 'rss', url: 'https://rss.arxiv.org/rss/cs.AI', limit: 10 }},
+      { id: 'huggingface', name: 'Hugging Face Blog', icon: '🤗', description: 'AI 模型與工具', category: 'AI/ML',
+        source: { type: 'rss', url: 'https://huggingface.co/blog/feed.xml', limit: 10 }},
+
+      // 產品
+      { id: 'producthunt', name: 'Product Hunt', icon: '🚀', description: '每日新創產品', category: '產品創業',
+        source: { type: 'api', url: 'https://api.producthunt.com', limit: 10 }},
+      { id: 'indiehackers', name: 'Indie Hackers', icon: '🏴‍☠️', description: '獨立開發者故事', category: '產品創業',
+        source: { type: 'rss', url: 'https://www.indiehackers.com/feed.xml', limit: 10 }},
+
+      // 深度閱讀
+      { id: 'medium-tech', name: 'Medium Tech', icon: '📝', description: 'Medium 科技文章', category: '深度閱讀',
+        source: { type: 'rss', url: 'https://medium.com/feed/tag/technology', limit: 10 }},
+      { id: 'aeon', name: 'Aeon', icon: '🌌', description: '哲學與思想長文', category: '深度閱讀',
+        source: { type: 'rss', url: 'https://aeon.co/feed.rss', limit: 10 }},
+      { id: 'nautil', name: 'Nautilus', icon: '🐚', description: '科學故事與洞察', category: '深度閱讀',
+        source: { type: 'rss', url: 'https://nautil.us/feed/', limit: 10 }},
+      { id: 'longreads', name: 'Longreads', icon: '📖', description: '精選長篇報導', category: '深度閱讀',
+        source: { type: 'rss', url: 'https://longreads.com/feed/', limit: 10 }},
+
+      // 新聞媒體
+      { id: 'bbc', name: 'BBC News', icon: '📺', description: '全球新聞', category: '新聞媒體',
+        source: { type: 'rss', url: 'https://feeds.bbci.co.uk/news/technology/rss.xml', limit: 10 }},
+      { id: 'guardian-tech', name: 'The Guardian Tech', icon: '🛡️', description: '衛報科技版', category: '新聞媒體',
+        source: { type: 'rss', url: 'https://www.theguardian.com/technology/rss', limit: 10 }},
+      { id: 'reuters', name: 'Reuters Tech', icon: '🌐', description: '路透社科技新聞', category: '新聞媒體',
+        source: { type: 'rss', url: 'https://www.reutersagency.com/feed/?taxonomy=best-topics&post_type=best', limit: 10 }},
+
+      // Reddit
+      { id: 'reddit-programming', name: 'r/programming', icon: '🔴', description: 'Reddit 程式設計版', category: 'Reddit',
+        source: { type: 'rss', url: 'https://www.reddit.com/r/programming/.rss', limit: 10 }},
+      { id: 'reddit-webdev', name: 'r/webdev', icon: '🔴', description: 'Reddit 網頁開發版', category: 'Reddit',
+        source: { type: 'rss', url: 'https://www.reddit.com/r/webdev/.rss', limit: 10 }},
+      { id: 'reddit-til', name: 'r/todayilearned', icon: '🔴', description: '今天學到的事', category: 'Reddit',
+        source: { type: 'rss', url: 'https://www.reddit.com/r/todayilearned/.rss', limit: 10 }},
+    ];
+
     // Load topics
     async function loadTopics() {
       try {
@@ -451,7 +524,10 @@
     // Render topics
     function renderTopics() {
       const list = document.getElementById('topic-list');
-      list.innerHTML = topics.map(t => `
+      if (topics.length === 0) {
+        list.innerHTML = '<p style="color: var(--text-muted); grid-column: 1/-1;">還沒有主題，從下方來源庫加入吧！</p>';
+      } else {
+        list.innerHTML = topics.map(t => `
         <div class="topic-card">
           <div class="topic-card-header">
             <div>
@@ -475,6 +551,8 @@
           </div>
         </div>
       `).join('');
+      }
+      renderSourceLibrary();
     }
 
     // Modal
@@ -576,6 +654,74 @@
       toast.textContent = msg;
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Render source library
+    function renderSourceLibrary() {
+      const lib = document.getElementById('source-library');
+      const addedIds = topics.map(t => t.id);
+
+      // Group by category
+      const categories = {};
+      sourceLibrary.forEach(s => {
+        if (!categories[s.category]) categories[s.category] = [];
+        categories[s.category].push(s);
+      });
+
+      let html = '';
+      for (const [cat, sources] of Object.entries(categories)) {
+        html += `<div style="grid-column: 1 / -1; margin-top: 16px; margin-bottom: 8px; font-weight: 600; color: var(--text-muted);">${cat}</div>`;
+        sources.forEach(s => {
+          const added = addedIds.includes(s.id);
+          html += `
+            <div class="topic-card" style="padding: 16px; ${added ? 'opacity: 0.5;' : ''}">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 1.5rem;">${s.icon}</span>
+                <div style="flex: 1;">
+                  <div style="font-weight: 600;">${s.name}</div>
+                  <div style="font-size: 0.85rem; color: var(--text-muted);">${s.description}</div>
+                </div>
+                <button class="btn btn-sm ${added ? 'btn-secondary' : 'btn-primary'}"
+                        onclick="addFromLibrary('${s.id}')" ${added ? 'disabled' : ''}>
+                  ${added ? '已加入' : '+ 加入'}
+                </button>
+              </div>
+            </div>
+          `;
+        });
+      }
+      lib.innerHTML = html;
+    }
+
+    // Add from library
+    async function addFromLibrary(id) {
+      const source = sourceLibrary.find(s => s.id === id);
+      if (!source) return;
+
+      const topic = {
+        id: source.id,
+        name: source.name,
+        icon: source.icon,
+        description: source.description,
+        path: '/' + source.id,
+        source: source.source,
+        enabled: true
+      };
+
+      try {
+        const res = await fetch('/api/admin/topics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(topic)
+        });
+
+        if (res.ok) {
+          showToast(`已加入 ${source.name}！`);
+          loadTopics();
+        }
+      } catch (e) {
+        showToast('加入失敗');
+      }
     }
 
     // Init
