@@ -489,6 +489,57 @@
       background: linear-gradient(90deg, var(--color-accent-soft) 0%, transparent 100%);
     }
 
+    .article-detail-body a {
+      color: var(--color-accent);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .article-detail-body a:hover {
+      border-bottom-color: var(--color-accent);
+    }
+
+    .article-detail-body code {
+      font-family: 'SF Mono', Consolas, monospace;
+      font-size: 0.9em;
+      background: var(--color-bg);
+      padding: 0.15em 0.4em;
+      border-radius: 3px;
+      color: var(--color-accent);
+    }
+
+    .article-detail-body ul {
+      margin: var(--space-md) 0;
+      padding-left: var(--space-lg);
+    }
+
+    .article-detail-body li {
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      line-height: 1.8;
+      margin-bottom: var(--space-sm);
+      color: var(--color-ink-light);
+    }
+
+    .article-detail-body p:first-of-type {
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      padding: var(--space-md);
+      background: var(--color-bg);
+      border-radius: 8px;
+      margin-bottom: var(--space-lg);
+    }
+
+    .article-detail-body p:first-of-type::first-letter {
+      font-size: inherit;
+      font-weight: inherit;
+      float: none;
+      margin: 0;
+      color: inherit;
+    }
+
     .article-detail-body .pull-quote {
       font-family: var(--font-serif);
       font-size: 1.75rem;
@@ -892,15 +943,37 @@
     }
 
     function renderArticleContent(content) {
+      // 簡單的 markdown 轉換
+      function parseMarkdown(text) {
+        return text
+          // 連結 [text](url)
+          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+          // 粗體 **text**
+          .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+          // 斜體 *text*
+          .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+          // 行內程式碼 `code`
+          .replace(/`([^`]+)`/g, '<code>$1</code>')
+          // 列表項目 - item
+          .replace(/^- (.+)$/gm, '<li>$1</li>');
+      }
+
       return content.map(block => {
+        const parsed = parseMarkdown(block.text);
         switch (block.type) {
           case 'paragraph':
             // 把 \n\n 分成多個段落，單個 \n 變成 <br>
-            const paragraphs = block.text.split(/\n\n+/).filter(p => p.trim());
-            return paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
-          case 'heading': return `<h2>${block.text}</h2>`;
-          case 'blockquote': return `<blockquote>${block.text}</blockquote>`;
-          case 'pullquote': return `<div class="pull-quote">${block.text}</div>`;
+            const paragraphs = parsed.split(/\n\n+/).filter(p => p.trim());
+            return paragraphs.map(p => {
+              // 如果包含 <li>，包成 <ul>
+              if (p.includes('<li>')) {
+                return `<ul>${p.replace(/<br>/g, '')}</ul>`;
+              }
+              return `<p>${p.replace(/\n/g, '<br>')}</p>`;
+            }).join('');
+          case 'heading': return `<h2>${parsed}</h2>`;
+          case 'blockquote': return `<blockquote>${parsed}</blockquote>`;
+          case 'pullquote': return `<div class="pull-quote">${parsed}</div>`;
           default: return '';
         }
       }).join('');

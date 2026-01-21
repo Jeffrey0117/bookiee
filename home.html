@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bookie — AI 驅動的內容聚合平台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --border: #e5e7eb;
+      --text: #1f2937;
+      --text-muted: #6b7280;
+      --accent: #ea580c;
+      --accent-soft: rgba(234, 88, 12, 0.1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans TC', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 120px 0 80px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--accent) 0%, #f97316 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 40px;
+    }
+
+    .hero-features {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+    }
+
+    .hero-feature {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .hero-feature svg {
+      color: var(--accent);
+    }
+
+    /* Magazines Grid */
+    .magazines-section {
+      padding: 60px 0 100px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .magazines-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 24px;
+    }
+
+    .magazine-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .magazine-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+
+    .magazine-icon {
+      width: 56px;
+      height: 56px;
+      background: var(--accent-soft);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+
+    .magazine-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .magazine-card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 20px;
+    }
+
+    .magazine-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .magazine-meta span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-live {
+      background: rgba(34, 197, 94, 0.2);
+      color: #22c55e;
+    }
+
+    .badge-coming {
+      background: rgba(234, 179, 8, 0.2);
+      color: #eab308;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+      .hero { padding: 80px 0 60px; }
+      .hero-features { gap: 16px; }
+      .magazines-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="container">
+    <section class="hero">
+      <span class="hero-badge">AI-Powered Content Platform</span>
+      <h1>Bookie<span>.</span></h1>
+      <p>將全球優質內容翻譯、整理、呈現。結合 AI 與精選來源，打造你的專屬知識庫。</p>
+
+      <div class="hero-features">
+        <div class="hero-feature">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+          多來源整合
+        </div>
+        <div class="hero-feature">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M2 12h20"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          AI 智慧翻譯
+        </div>
+        <div class="hero-feature">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+          雜誌級排版
+        </div>
+      </div>
+    </section>
+
+    <section class="magazines-section">
+      <div class="section-header">
+        <h2 class="section-title">內容頻道</h2>
+      </div>
+
+      <div class="magazines-grid">
+        <a href="/hn" class="magazine-card">
+          <div class="magazine-icon">🔥</div>
+          <h3>HN Daily</h3>
+          <p>Hacker News 每日精選，熱門科技文章完整翻譯，附專有名詞解釋與編輯觀點。</p>
+          <div class="magazine-meta">
+            <span class="badge badge-live">運作中</span>
+            <span>📰 每日更新</span>
+            <span>🌐 英文 → 繁中</span>
+          </div>
+        </a>
+
+        <a href="/pchome" class="magazine-card">
+          <div class="magazine-icon">📱</div>
+          <h3>PC home 數位生活</h3>
+          <p>台灣老牌科技雜誌，AI 生成文章內容，探索數位生活的各種面向。</p>
+          <div class="magazine-meta">
+            <span class="badge badge-live">運作中</span>
+            <span>📖 雜誌形式</span>
+            <span>🤖 AI 生成</span>
+          </div>
+        </a>
+
+        <div class="magazine-card" style="opacity: 0.6; cursor: default;">
+          <div class="magazine-icon">🚀</div>
+          <h3>Product Hunt</h3>
+          <p>每日新創產品精選，翻譯產品介紹與使用場景分析。</p>
+          <div class="magazine-meta">
+            <span class="badge badge-coming">即將推出</span>
+            <span>📦 產品導向</span>
+          </div>
+        </div>
+
+        <div class="magazine-card" style="opacity: 0.6; cursor: default;">
+          <div class="magazine-icon">📚</div>
+          <h3>arXiv 論文</h3>
+          <p>精選 AI/ML 學術論文，摘要翻譯與白話解讀。</p>
+          <div class="magazine-meta">
+            <span class="badge badge-coming">規劃中</span>
+            <span>🎓 學術向</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Built with Node.js + Fastify + AI | <a href="https://github.com" target="_blank">GitHub</a></p>
+  </footer>
+
+</body>
+</html>

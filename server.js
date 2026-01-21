@@ -139,8 +139,120 @@ fastify.get('/api/raw', async (request, reply) => {
   return data;
 });
 
-// Serve index.html
+// API: 取得 HN 每日精選
+fastify.get('/api/hn', async (request, reply) => {
+  try {
+    const data = JSON.parse(await fs.readFile('hn-daily.json', 'utf-8'));
+    return data;
+  } catch (error) {
+    reply.code(500).send({ error: '讀取 HN 資料失敗', message: error.message });
+  }
+});
+
+// HN 每日精選（轉換成雜誌格式）
+fastify.get('/api/hn/issues', async (request, reply) => {
+  try {
+    const data = JSON.parse(await fs.readFile('hn-daily.json', 'utf-8'));
+
+    // 轉換成雜誌格式
+    const issue = {
+      id: `hn-${data.date}`,
+      number: 1,
+      year: parseInt(data.date.split('-')[0]),
+      month: parseInt(data.date.split('-')[1]),
+      title: 'Hacker News 每日精選',
+      description: '科技圈最熱門的話題，AI 翻譯與深度解析',
+      cover: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&h=800&fit=crop',
+      date: data.date,
+      articles: data.stories.map((s, i) => {
+        // 組合文章內容
+        const contentBlocks = [];
+
+        // 原文連結區塊
+        contentBlocks.push({
+          type: 'paragraph',
+          text: `📎 **原文連結**：[${s.title}](${s.url})\n🔥 熱度：${s.score} 分 ｜ 💬 ${s.comments} 則討論 ｜ [HN 討論串](${s.hnUrl})`
+        });
+
+        // 主要翻譯內容
+        if (s.content) {
+          contentBlocks.push({ type: 'paragraph', text: s.content });
+        }
+
+        // 名詞解釋
+        if (s.glossary) {
+          contentBlocks.push({
+            type: 'heading',
+            text: '📚 名詞解釋'
+          });
+          contentBlocks.push({
+            type: 'paragraph',
+            text: s.glossary
+          });
+        }
+
+        // 編輯觀點
+        if (s.insight) {
+          contentBlocks.push({
+            type: 'blockquote',
+            text: `💡 編輯觀點：${s.insight}`
+          });
+        }
+
+        return {
+          id: `hn-${s.id}`,
+          category: s.hasOriginal ? `#${i + 1} 翻譯` : `#${i + 1} 精選`,
+          title: s.titleZh || s.title,
+          rawTitle: s.title,
+          excerpt: s.summary || '',
+          author: s.author,
+          date: data.date,
+          readTime: `${Math.ceil((s.content?.length || 300) / 400)} 分鐘`,
+          score: s.score,
+          comments: s.comments,
+          url: s.url,
+          hnUrl: s.hnUrl,
+          content: contentBlocks
+        };
+      })
+    };
+
+    return { issues: [issue] };
+  } catch (error) {
+    reply.code(500).send({ error: '讀取 HN 資料失敗', message: error.message });
+  }
+});
+
+// HN 每日精選頁面（使用雜誌版型）
+fastify.get('/hn', async (request, reply) => {
+  try {
+    const html = await fs.readFile(path.join(__dirname, 'index.html'), 'utf-8');
+
+    // 修改標題和載入 HN 資料
+    const injectedHtml = html
+      .replace('<title>FLUX — 數位生活誌</title>', '<title>HN Daily — Hacker News 每日精選</title>')
+      .replace('FLUX<span>.</span> 數位生活誌', 'HN<span>.</span> Daily')
+      .replace('探索科技與生活的交匯點，每一期都是新的靈感旅程', 'Hacker News 熱門話題・繁體中文深度解析')
+      .replace('FLUX<span style="color:var(--color-accent)">.</span>', 'HN<span style="color:var(--color-accent)">.</span>')
+      .replace("document.addEventListener('DOMContentLoaded', () => Magazine.init());",
+        `document.addEventListener('DOMContentLoaded', async () => {
+          await Magazine.loadFromJSON('/api/hn/issues');
+        });`);
+
+    reply.type('text/html').send(injectedHtml);
+  } catch (error) {
+    reply.code(500).send({ error: '讀取頁面失敗', message: error.message });
+  }
+});
+
+// 首頁 - 專案介紹
 fastify.get('/', async (request, reply) => {
+  const html = await fs.readFile(path.join(__dirname, 'home.html'), 'utf-8');
+  reply.type('text/html').send(html);
+});
+
+// PC home 雜誌
+fastify.get('/pchome', async (request, reply) => {
   const html = await fs.readFile(path.join(__dirname, 'index.html'), 'utf-8');
 
   // 注入從 API 載入資料的程式碼
